@@ -421,7 +421,7 @@ local function ManifestEggPredictorV2()
 		toggleIcon.Parent = toggleButton
 
 		local rerollButton, rerollStroke = CreateInteractiveButton({
-			Name = "RerollButton", Text = "MANUAL PREDICTION", LayoutOrder = 2, StrokeColor = PALETTE.PRIMARY, ClipsDescendants = true
+			Name = "RerollButton", Text = "REROLL EGG ", LayoutOrder = 2, StrokeColor = PALETTE.PRIMARY, ClipsDescendants = true
 		})
 		Gui.RerollButton = rerollButton
 
