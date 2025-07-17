@@ -1,0 +1,183 @@
+local CoreGui = game:GetService("CoreGui")
+local StarterGui = game:GetService("StarterGui")
+local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local TweenService = game:GetService("TweenService")
+local LocalPlayer = Players.LocalPlayer
+
+local freezeGui = Instance.new("ScreenGui")
+freezeGui.Name = "UpdateFreezeScreen"
+freezeGui.ResetOnSpawn = false
+freezeGui.IgnoreGuiInset = true
+freezeGui.DisplayOrder = 2147483647
+
+local blackBackground = Instance.new("Frame")
+blackBackground.Name = "BlackBackground"
+blackBackground.BackgroundColor3 = Color3.new(0, 0, 0)
+blackBackground.BorderSizePixel = 0
+blackBackground.Size = UDim2.new(1, 0, 1, 0)
+blackBackground.Parent = freezeGui
+
+local screenshotFrame = Instance.new("ViewportFrame")
+screenshotFrame.Name = "Screenshot"
+screenshotFrame.Size = UDim2.new(1, 0, 1, 0)
+screenshotFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+screenshotFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+screenshotFrame.BackgroundColor3 = Lighting.FogColor
+screenshotFrame.BorderSizePixel = 0
+screenshotFrame.Ambient = Lighting.Ambient
+screenshotFrame.Parent = freezeGui
+
+for _, item in ipairs(Lighting:GetChildren()) do
+    item:Clone().Parent = screenshotFrame
+end
+
+local worldClone = Instance.new("Model")
+worldClone.Name = "WorldClone"
+worldClone.Parent = screenshotFrame
+
+for _, item in ipairs(workspace:GetChildren()) do
+    if not item:IsA("Terrain") and not item:IsA("Camera") then
+        local success, clonedItem = pcall(function() return item:Clone() end)
+        if success and clonedItem then
+            for _, descendant in ipairs(clonedItem:GetDescendants()) do
+                if descendant:IsA("BaseScript") then
+                    descendant:Destroy()
+                end
+            end
+            clonedItem.Parent = worldClone
+        end
+    end
+end
+
+for _, gui in ipairs(LocalPlayer.PlayerGui:GetChildren()) do
+    if gui:IsA("ScreenGui") and gui ~= freezeGui then
+        gui.Enabled = false
+    end
+end
+
+local viewportCamera = Instance.new("Camera")
+viewportCamera.Parent = screenshotFrame
+screenshotFrame.CurrentCamera = viewportCamera
+viewportCamera.CFrame = workspace.CurrentCamera.CFrame
+viewportCamera.FieldOfView = workspace.CurrentCamera.FieldOfView
+
+local overlayFrame = Instance.new("Frame")
+overlayFrame.Name = "Overlay"
+overlayFrame.Size = UDim2.new(1, 0, 1, 0)
+overlayFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+overlayFrame.BackgroundTransparency = 0.5
+overlayFrame.Parent = freezeGui
+
+local animationContainer = Instance.new("Frame")
+animationContainer.Name = "AnimationContainer"
+animationContainer.Size = UDim2.new(0, 400, 0, 400)
+animationContainer.Position = UDim2.new(0.5, 0, 0.45, 0)
+animationContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+animationContainer.BackgroundTransparency = 1
+animationContainer.Parent = overlayFrame
+
+local mainText = Instance.new("TextLabel")
+mainText.Name = "MainText"
+mainText.Text = "Update Required"
+mainText.Font = Enum.Font.GothamBold
+mainText.TextColor3 = Color3.new(1, 1, 1)
+mainText.TextSize = 42
+mainText.Size = UDim2.new(1, 0, 0, 50)
+mainText.Position = UDim2.new(0.5, 0, 0.75, 0)
+mainText.AnchorPoint = Vector2.new(0.5, 0.5)
+mainText.BackgroundTransparency = 1
+mainText.Parent = overlayFrame
+
+local subText = Instance.new("TextLabel")
+subText.Name = "SubText"
+subText.Text = "An essential script update is being applied for compatibility."
+subText.Font = Enum.Font.Gotham
+subText.TextColor3 = Color3.new(0.8, 0.8, 0.8)
+subText.TextSize = 22
+subText.Size = UDim2.new(0.9, 0, 0, 60)
+subText.TextWrapped = true
+subText.Position = UDim2.new(0.5, 0, 0.82, 0)
+subText.AnchorPoint = Vector2.new(0.5, 0.5)
+subText.BackgroundTransparency = 1
+subText.Parent = overlayFrame
+
+local function createRing(parent, size, thickness, speed)
+    local ring = Instance.new("Frame")
+    ring.Size = UDim2.new(0, size, 0, size)
+    ring.Position = UDim2.new(0.5, 0, 0.5, 0)
+    ring.AnchorPoint = Vector2.new(0.5, 0.5)
+    ring.BackgroundTransparency = 1
+    ring.Parent = parent
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    stroke.Color = Color3.fromRGB(70, 170, 255)
+    stroke.Thickness = thickness
+    stroke.Parent = ring
+    
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 220, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(50, 150, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 220, 255))
+    })
+    gradient.Parent = stroke
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = ring
+    
+    local tweenInfo = TweenInfo.new(speed, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, -1, false)
+    local tween = TweenService:Create(ring, tweenInfo, {Rotation = 360 * (speed > 0 and 1 or -1)})
+    tween:Play()
+end
+
+local coreGlow = Instance.new("Frame")
+coreGlow.Size = UDim2.new(0, 100, 0, 100)
+coreGlow.Position = UDim2.new(0.5, 0, 0.5, 0)
+coreGlow.AnchorPoint = Vector2.new(0.5, 0.5)
+coreGlow.BackgroundTransparency = 1
+coreGlow.Parent = animationContainer
+local coreGlowCorner = Instance.new("UICorner")
+coreGlowCorner.CornerRadius = UDim.new(1,0)
+coreGlowCorner.Parent = coreGlow
+local coreGlowGradient = Instance.new("UIGradient")
+coreGlowGradient.Color = ColorSequence.new(Color3.fromRGB(180, 230, 255), Color3.fromRGB(50, 100, 150))
+coreGlowGradient.Transparency = NumberSequence.new(0.5, 1)
+coreGlowGradient.Parent = coreGlow
+
+createRing(animationContainer, 150, 2, 10)
+createRing(animationContainer, 200, 3, -15)
+createRing(animationContainer, 250, 1, 20)
+
+freezeGui.Parent = CoreGui
+
+task.spawn(function()
+    local pulseInfo = TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+    TweenService:Create(coreGlow, pulseInfo, {Size = UDim2.new(0, 120, 0, 120), BackgroundTransparency = 0.7}):Play()
+end)
+
+task.spawn(function()
+    while task.wait(0.1) do
+        pcall(function()
+            StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
+        end)
+    end
+end)
+
+task.spawn(function()
+    for i = 20, 0, -1 do
+        subText.Text = string.format("The game will restart to apply the update in %d seconds...", i)
+        task.wait(1)
+    end
+
+    local success, err = pcall(function()
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+    end)
+
+    if not success then
+        LocalPlayer:Kick("Automatic rejoin failed. Please close and restart the game to reconnect.")
+    end
+end)
